@@ -50,24 +50,43 @@ export default async function fetchTitleAndHeaders(url: string) {
       // regular expression to find the <title> tag
       let titleMatch = text.match(/<title.*>([^<]*)<\/title>/);
       
-      // regular expression to find the meta description tag
-      let descriptionMatch = text.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+      // More robust regex patterns for meta description
+      // Pattern 1: name="description" content="..."
+      let descriptionMatch = text.match(/<meta[^>]*name\s*=\s*["']description["'][^>]*content\s*=\s*["']([^"']*)["'][^>]*>/i);
       
-      // fallback: look for og:description if meta description not found
+      // Pattern 2: content="..." name="description"
       if (!descriptionMatch) {
-        descriptionMatch = text.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i);
+        descriptionMatch = text.match(/<meta[^>]*content\s*=\s*["']([^"']*)["'][^>]*name\s*=\s*["']description["'][^>]*>/i);
+      }
+      
+      // Pattern 3: property="og:description" content="..."
+      if (!descriptionMatch) {
+        descriptionMatch = text.match(/<meta[^>]*property\s*=\s*["']og:description["'][^>]*content\s*=\s*["']([^"']*)["'][^>]*>/i);
+      }
+      
+      // Pattern 4: content="..." property="og:description"
+      if (!descriptionMatch) {
+        descriptionMatch = text.match(/<meta[^>]*content\s*=\s*["']([^"']*)["'][^>]*property\s*=\s*["']og:description["'][^>]*>/i);
       }
 
       const title = titleMatch?.[1] || "";
       const description = descriptionMatch?.[1] || "";
       const headers = (response as Response)?.headers || null;
 
+      // Debug logging
+      console.log("🔍 fetchTitleAndHeaders Debug:");
+      console.log("URL:", url);
+      console.log("Title found:", title);
+      console.log("Description found:", description);
+      console.log("Description match:", descriptionMatch);
+
       return { title, description, headers };
     } else {
+      console.log("❌ fetchTitleAndHeaders: No response status");
       return { title: "", description: "", headers: null };
     }
   } catch (err) {
-    console.log(err);
+    console.log("❌ fetchTitleAndHeaders Error:", err);
     return { title: "", description: "", headers: null };
   }
 }

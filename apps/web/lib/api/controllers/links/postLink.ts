@@ -83,6 +83,12 @@ export default async function postLink(
     ? link.description 
     : extractedDescription;
 
+  // Debug logging
+  console.log("🔍 postLink Debug:");
+  console.log("User provided description:", link.description);
+  console.log("Extracted description:", extractedDescription);
+  console.log("Final description to save:", description);
+
   const contentType = headers?.get("content-type");
   let linkType = "url";
   let imageExtension = "png";
