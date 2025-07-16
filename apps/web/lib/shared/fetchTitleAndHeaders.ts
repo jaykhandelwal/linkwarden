@@ -5,7 +5,7 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 
 export default async function fetchTitleAndHeaders(url: string) {
   if (!url?.startsWith("http://") && !url?.startsWith("https://"))
-    return { title: "", headers: null };
+    return { title: "", description: "", headers: null };
 
   try {
     const httpsAgent = new https.Agent({
@@ -48,17 +48,26 @@ export default async function fetchTitleAndHeaders(url: string) {
       const text = await (response as any).text();
 
       // regular expression to find the <title> tag
-      let match = text.match(/<title.*>([^<]*)<\/title>/);
+      let titleMatch = text.match(/<title.*>([^<]*)<\/title>/);
+      
+      // regular expression to find the meta description tag
+      let descriptionMatch = text.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+      
+      // fallback: look for og:description if meta description not found
+      if (!descriptionMatch) {
+        descriptionMatch = text.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i);
+      }
 
-      const title = match?.[1] || "";
+      const title = titleMatch?.[1] || "";
+      const description = descriptionMatch?.[1] || "";
       const headers = (response as Response)?.headers || null;
 
-      return { title, headers };
+      return { title, description, headers };
     } else {
-      return { title: "", headers: null };
+      return { title: "", description: "", headers: null };
     }
   } catch (err) {
     console.log(err);
-    return { title: "", headers: null };
+    return { title: "", description: "", headers: null };
   }
 }

@@ -71,12 +71,17 @@ export default async function postLink(
     };
   }
 
-  const { title = "", headers = new Headers() } = link.url
+  const { title = "", description: extractedDescription = "", headers = new Headers() } = link.url
     ? await fetchTitleAndHeaders(link.url)
     : {};
 
   const name =
     link.name && link.name !== "" ? link.name : link.url ? title : "";
+
+  // Use extracted description if user hasn't provided one
+  const description = link.description && link.description !== "" 
+    ? link.description 
+    : extractedDescription;
 
   const contentType = headers?.get("content-type");
   let linkType = "url";
@@ -96,7 +101,7 @@ export default async function postLink(
     data: {
       url: link.url?.trim() || null,
       name,
-      description: link.description,
+      description,
       type: linkType,
       createdBy: {
         connect: {
