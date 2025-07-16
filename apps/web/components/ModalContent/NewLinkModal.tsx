@@ -83,13 +83,22 @@ export default function NewLinkModal({ onClose }: Props) {
     if (!submitLoader) {
       setSubmitLoader(true);
       const load = toast.loading(t("creating_link"));
+      
+      // Debug logging on client side
+      console.log("🔍 NewLinkModal Debug:");
+      console.log("Submitting link:", link);
+      console.log("Link URL:", link.url);
+      console.log("Link description:", link.description);
+      
       await addLink.mutateAsync(link, {
         onSettled: (data, error) => {
           setSubmitLoader(false);
           toast.dismiss(load);
           if (error) {
+            console.log("❌ Error creating link:", error);
             toast.error(t(error.message));
           } else {
+            console.log("✅ Link created successfully:", data);
             onClose();
             toast.success(t("link_created"));
           }
